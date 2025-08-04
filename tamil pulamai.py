@@ -1,122 +1,133 @@
 import tkinter as tk
+from tkinter import ttk
 import random
 
-# Tamil letter groups
-uyir_eluthugal = [
-    "அ", "ஆ", "இ", "ஈ", "உ", "ஊ", "எ", "ஏ", "ஐ", "ஒ", "ஓ", "ஔ"
-]
+# Define Tamil letters
+uyir_eluthugal = ["அ", "ஆ", "இ", "ஈ", "உ", "ஊ", "எ", "ஏ", "ஐ", "ஒ", "ஓ", "ஔ"]
+mei_eluthugal = ["க்", "ங்", "ச்", "ஞ்", "ட்", "ண்", "த்", "ந்", "ப்", "ம்", "ய்", "ர்", "ல்", "வ்", "ழ்", "ள்", "ற்", "ன"]
+aaytha_eluthu = ["ஃ"]
 
-mei_eluthugal = [
-    "க்", "ங்", "ச்", "ஞ்", "ட்", "ண்", "த்", "ந்", "ப்", "ம்", "ய்", "ர்", "ல்", "வ்", "ழ்", "ள்", "ற்", "ன்"
-]
-
+# 216 UyirMei combinations
 uyirmei_eluthugal = []
-# Combine uyir + mei to create 216 uyirmei letters (excluding invalid ones)
 combinations = {
-    "அ": "", "ஆ": "ா", "இ": "ி", "ஈ": "ீ", "உ": "ு", "ஊ": "ூ", 
+    "அ": "", "ஆ": "ா", "இ": "ி", "ஈ": "ீ", "உ": "ு", "ஊ": "ூ",
     "எ": "ெ", "ஏ": "ே", "ஐ": "ை", "ஒ": "ொ", "ஓ": "ோ", "ஔ": "ௌ"
 }
 
-# Mei letters with base consonant
-mei_base = [
-    ("க்", "க"), ("ங்", "ங"), ("ச்", "ச"), ("ஞ்", "ஞ"),
-    ("ட்", "ட"), ("ண்", "ண"), ("த்", "த"), ("ந்", "ந"),
-    ("ப்", "ப"), ("ம்", "ம"), ("ய்", "ய"), ("ர்", "ர"),
-    ("ல்", "ல"), ("வ்", "வ"), ("ழ்", "ழ"), ("ள்", "ள"),
-    ("ற்", "ற"), ("ன்", "ன")
-]
-
-for mei, base in mei_base:
+for mei in mei_eluthugal:
+    row = []
     for uyir, suffix in combinations.items():
-        if uyir == "அ":
-            uyirmei_eluthugal.append(base)
+        if mei[0] in ["ங", "ஞ", "ண", "ந", "ம", "ன"] and uyir in ["ஔ"]:
+            row.append("")
         else:
-            uyirmei_eluthugal.append(base + suffix)
+            row.append(mei[0] + suffix)
+    uyirmei_eluthugal.append(row)
 
-# Aaytha ezhuthu
-aaytha_eluthu = ["ஃ"]
-
-class TamilApp:
+class TamilApp(tk.Tk):
     def __init__(self):
-        self.root = tk.Tk()
-        self.root.title("தமிழ் புலமை (Tamil Pulamai)")
-        self.root.geometry("800x600")
+        super().__init__()
+        self.title("தமிழ் புலமை")
+        self.geometry("1000x600")
 
         self.create_widgets()
-        self.show_tamil_eluthugal()
-        self.root.mainloop()
 
     def create_widgets(self):
-        self.menu_frame = tk.Frame(self.root, bg="#333")
+        # Create navigation menu
+        self.menu_frame = tk.Frame(self, bg="#f0f0f0", width=150)
         self.menu_frame.pack(side="left", fill="y")
 
-        self.main_frame = tk.Frame(self.root, bg="#f4f4f4")
-        self.main_frame.pack(side="right", fill="both", expand=True)
-
-        self.buttons = [
+        menu_items = [
             ("தமிழ் எழுத்துகள்", self.show_tamil_eluthugal),
-            ("உயிர் எழுத்துகள்", self.show_uyir),
-            ("ஆய்த எழுத்து", self.show_aaytha),
-            ("மெய் எழுத்துகள்", self.show_mei),
-            ("உயிர் மெய் எழுத்துகள்", self.show_uyirmei),
-            ("வினாடி வினா", self.show_quiz)
+            ("உயிர் எழுத்துகள்", self.show_uyir_eluthugal),
+            ("ஆய்த எழுத்து", self.show_aaytha_eluthu),
+            ("மெய் எழுத்துகள்", self.show_mei_eluthugal),
+            ("உயிர் மெய் எழுத்துகள்", self.show_uyir_mei_eluthugal),
+            ("வினாடி வினா", self.show_quiz),
         ]
 
-        for text, command in self.buttons:
-            btn = tk.Button(self.menu_frame, text=text, fg="white", bg="#555", font=("Arial", 12), command=command)
-            btn.pack(fill="x", padx=5, pady=5)
+        for name, command in menu_items:
+            button = tk.Button(self.menu_frame, text=name, font=("Arial", 10), command=command, width=20, anchor="w")
+            button.pack(pady=5, padx=5)
 
-    def clear_main_frame(self):
-        for widget in self.main_frame.winfo_children():
+        # Main content frame
+        self.content_frame = tk.Frame(self, bg="white")
+        self.content_frame.pack(side="right", fill="both", expand=True)
+
+        self.show_tamil_eluthugal()
+
+    def clear_content(self):
+        for widget in self.content_frame.winfo_children():
             widget.destroy()
 
-    def show_letters(self, letters):
-        self.clear_main_frame()
-        container = tk.Frame(self.main_frame, bg="#f4f4f4")
-        container.pack(padx=20, pady=20)
-        row = col = 0
-        for letter in letters:
-            tile = tk.Button(container, text=letter, width=5, height=2, font=("Arial", 20), relief="raised", bg="#fff")
-            tile.grid(row=row, column=col, padx=10, pady=10)
-            col += 1
-            if col >= 10:
-                col = 0
-                row += 1
-
     def show_tamil_eluthugal(self):
-        all_letters = uyir_eluthugal + aaytha_eluthu + [mei for mei, _ in mei_base] + uyirmei_eluthugal
-        self.show_letters(all_letters)
+        self.clear_content()
+        label = tk.Label(self.content_frame, text="தமிழ் எழுத்துகள்", font=("Arial", 16))
+        label.pack(pady=10)
 
-    def show_uyir(self):
-        self.show_letters(uyir_eluthugal)
+    def show_uyir_eluthugal(self):
+        self.clear_content()
+        label = tk.Label(self.content_frame, text="உயிர் எழுத்துகள்", font=("Arial", 16))
+        label.pack(pady=10)
+        self.display_tiles(uyir_eluthugal)
 
-    def show_mei(self):
-        self.show_letters([mei for mei, _ in mei_base])
+    def show_mei_eluthugal(self):
+        self.clear_content()
+        label = tk.Label(self.content_frame, text="மெய் எழுத்துகள்", font=("Arial", 16))
+        label.pack(pady=10)
+        self.display_tiles(mei_eluthugal)
 
-    def show_aaytha(self):
-        self.show_letters(aaytha_eluthu)
+    def show_aaytha_eluthu(self):
+        self.clear_content()
+        label = tk.Label(self.content_frame, text="ஆய்த எழுத்து", font=("Arial", 16))
+        label.pack(pady=10)
+        self.display_tiles(aaytha_eluthu)
 
-    def show_uyirmei(self):
-        self.show_letters(uyirmei_eluthugal)
+    def show_uyir_mei_eluthugal(self):
+        self.clear_content()
+        label = tk.Label(self.content_frame, text="உயிர் மெய் எழுத்துகள் (216)", font=("Arial", 16))
+        label.pack(pady=10)
+
+        table_frame = tk.Frame(self.content_frame, bg="white")
+        table_frame.pack(padx=10, pady=10)
+
+        for i, row in enumerate(uyirmei_eluthugal):
+            for j, letter in enumerate(row):
+                if letter:
+                    tile = tk.Label(table_frame, text=letter, font=("Arial", 14), bd=1, relief="ridge", padx=10, pady=10)
+                    tile.grid(row=i, column=j, padx=2, pady=2)
 
     def show_quiz(self):
-        self.clear_main_frame()
+        self.clear_content()
+        label = tk.Label(self.content_frame, text="வினாடி வினா", font=("Arial", 16))
+        label.pack(pady=10)
+
         self.quiz_index = 0
-        self.quiz_letters = random.sample(uyir_eluthugal + aaytha_eluthu + [mei for mei, _ in mei_base] + uyirmei_eluthugal, len(uyir_eluthugal + aaytha_eluthu + mei_eluthugal + uyirmei_eluthugal))
+        self.quiz_letters = uyir_eluthugal + mei_eluthugal + [l for row in uyirmei_eluthugal for l in row if l]
+        random.shuffle(self.quiz_letters)
 
-        self.quiz_label = tk.Label(self.main_frame, text=self.quiz_letters[self.quiz_index], font=("Arial", 100), bg="#f4f4f4")
-        self.quiz_label.pack(pady=100)
+        self.quiz_label = tk.Label(self.content_frame, text="", font=("Arial", 30))
+        self.quiz_label.pack(pady=20)
 
-        self.next_btn = tk.Button(self.main_frame, text="அடுத்தது (Next)", command=self.next_quiz, font=("Arial", 16))
-        self.next_btn.pack(pady=20)
+        self.next_button = tk.Button(self.content_frame, text="அடுத்தது", command=self.next_question)
+        self.next_button.pack(pady=10)
 
-    def next_quiz(self):
-        self.quiz_index += 1
-        if self.quiz_index >= len(self.quiz_letters):
-            self.quiz_label.config(text="முடிந்தது! (Done!)")
-            self.next_btn.config(state="disabled")
-        else:
+        self.next_question()
+
+    def next_question(self):
+        if self.quiz_index < len(self.quiz_letters):
             self.quiz_label.config(text=self.quiz_letters[self.quiz_index])
+            self.quiz_index += 1
+        else:
+            self.quiz_label.config(text="முடிந்தது!")
+
+    def display_tiles(self, letters):
+        grid_frame = tk.Frame(self.content_frame, bg="white")
+        grid_frame.pack(padx=10, pady=10)
+
+        for i, letter in enumerate(letters):
+            tile = tk.Label(grid_frame, text=letter, font=("Arial", 14), bd=1, relief="ridge", padx=10, pady=10)
+            tile.grid(row=i//6, column=i%6, padx=5, pady=5)
 
 if __name__ == "__main__":
     app = TamilApp()
+    app.mainloop()
