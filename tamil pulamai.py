@@ -1,186 +1,160 @@
 import tkinter as tk
 from tkinter import ttk
-import random
+from tkinter import messagebox
+import random  # <-- added for shuffling
 
-# Tamil letters
 uyir_eluthugal = ["அ", "ஆ", "இ", "ஈ", "உ", "ஊ", "எ", "ஏ", "ஐ", "ஒ", "ஓ", "ஔ"]
-mei_eluthugal = ["க்", "ச்", "ட்", "த்", "ப்", "ற்", "ஞ்", "ங்", "ண்", "ந்", "ம்", "ன்", "ய்", "ர்", "ல்", "வ்", "ழ்", "ள்"]
-mei_eluthugal[-1] = "ன்"  # Add dot
-
-# UyirMei logic
-kombu = {
+mei_eluthugal = ["க்", "ங்", "ச்", "ஞ்", "ட்", "ண்", "த்", "ந்", "ப்", "ம்", "ய்", "ர்", "ல்", "வ்", "ழ்", "ள்", "ற்", "ன்"]
+uyirmei_eluthugal = []
+combinations = {
     "அ": "", "ஆ": "ா", "இ": "ி", "ஈ": "ீ", "உ": "ு", "ஊ": "ூ",
     "எ": "ெ", "ஏ": "ே", "ஐ": "ை", "ஒ": "ொ", "ஓ": "ோ", "ஔ": "ௌ"
 }
 
-uyirmei_eluthugal = []
 for mei in mei_eluthugal:
     row = []
-    for uyir in uyir_eluthugal:
-        uyirmei = mei[0] + kombu[uyir]
-        row.append(uyirmei)
+    for uyir, suffix in combinations.items():
+        row.append(mei[0] + suffix)
     uyirmei_eluthugal.append(row)
 
-# Quiz Questions
-quiz_questions = random.sample(sum(uyirmei_eluthugal, []), 10)
-
-# App Class
 class TamilApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("தமிழ் புலமை")
-        self.geometry("900x600")
+        self.geometry("1000x600")
 
-        self.frames = {}
-        self.create_menu()
+        self.create_widgets()
+        self.show_tamil_eluthugal()
+
+    def create_widgets(self):
         self.container = tk.Frame(self)
         self.container.pack(fill="both", expand=True)
-        self.show_frame("TamilEluthugalPage")
 
-    def create_menu(self):
-        menu = tk.Menu(self)
-        self.config(menu=menu)
-        pages = [
-            ("தமிழ் எழுத்துகள்", "TamilEluthugalPage"),
-            ("உயிரெழுத்துகள்", "UyirPage"),
-            ("மெய்யெழுத்துகள்", "MeiPage"),
-            ("உயிர்மெய் எழுத்துகள்", "UyirMeiPage"),
-            ("வினாடி வினா", "VinadiVinaPage"),
+        self.menu_frame = tk.Frame(self.container, bg="lightgrey", width=150)
+        self.menu_frame.pack(side="left", fill="y")
+
+        self.content_frame = tk.Frame(self.container)
+        self.content_frame.pack(side="left", fill="both", expand=True)
+
+        self.menu_buttons = [
+            ("தமிழ் எழுத்துகள்", self.show_tamil_eluthugal),
+            ("உயிரெழுத்துகள்", self.show_uyir_eluthugal),
+            ("மெய்எழுத்துகள்", self.show_mei_eluthugal),
+            ("உயிர்மெய்எழுத்துகள்", self.show_uyirmei_eluthugal),
+            ("வினாடி வினா", self.show_vinadi_vina)
         ]
-        for name, frame in pages:
-            menu.add_command(label=name, command=lambda f=frame: self.show_frame(f))
 
-    def show_frame(self, name):
-        if name not in self.frames:
-            if name == "UyirPage":
-                frame = UyirPage(self.container)
-            elif name == "MeiPage":
-                frame = MeiPage(self.container)
-            elif name == "UyirMeiPage":
-                frame = UyirMeiPage(self.container)
-            elif name == "VinadiVinaPage":
-                frame = VinadiVinaPage(self.container)
-            else:
-                frame = TamilEluthugalPage(self.container)
-            self.frames[name] = frame
-            frame.pack(fill="both", expand=True)
-        for f in self.frames.values():
-            f.pack_forget()
-        self.frames[name].pack(fill="both", expand=True)
+        for text, command in self.menu_buttons:
+            b = tk.Button(self.menu_frame, text=text, command=command)
+            b.pack(fill="x", padx=10, pady=5)
 
-# Scrollable Frame
-class ScrollableFrame(ttk.Frame):
-    def __init__(self, parent):
-        super().__init__(parent)
-        canvas = tk.Canvas(self)
-        scrollbar = ttk.Scrollbar(self, orient="vertical", command=canvas.yview)
-        self.scrollable_frame = ttk.Frame(canvas)
+    def clear_content(self):
+        for widget in self.content_frame.winfo_children():
+            widget.destroy()
 
-        self.scrollable_frame.bind(
-            "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+    def show_uyir_eluthugal(self):
+        self.clear_content()
+        title = tk.Label(self.content_frame, text="உயிரெழுத்துகள்", font=("Arial", 16))
+        title.pack(pady=10)
+
+        grid_frame = tk.Frame(self.content_frame)
+        grid_frame.pack()
+
+        for index, letter in enumerate(uyir_eluthugal):
+            tile = tk.Label(grid_frame, text=letter, font=("Arial", 18), relief="raised", padx=10, pady=10)
+            tile.grid(row=index // 6, column=index % 6, padx=5, pady=5)
+
+    def show_mei_eluthugal(self):
+        self.clear_content()
+        title = tk.Label(self.content_frame, text="மெய்எழுத்துகள்", font=("Arial", 16))
+        title.pack(pady=10)
+
+        grid_frame = tk.Frame(self.content_frame)
+        grid_frame.pack()
+
+        for index, letter in enumerate(mei_eluthugal):
+            tile = tk.Label(grid_frame, text=letter, font=("Arial", 18), relief="raised", padx=10, pady=10)
+            tile.grid(row=index // 6, column=index % 6, padx=5, pady=5)
+
+    def show_uyirmei_eluthugal(self):
+        self.clear_content()
+        title = tk.Label(self.content_frame, text="உயிர்மெய்எழுத்துகள்", font=("Arial", 16))
+        title.pack(pady=10)
+
+        canvas = tk.Canvas(self.content_frame)
+        scrollbar = tk.Scrollbar(self.content_frame, orient="vertical", command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas)
+
+        scrollable_frame.bind(
+            "<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
         )
 
-        canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
+
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
 
-# Tamil Eluthugal Page
-class TamilEluthugalPage(ScrollableFrame):
-    def __init__(self, parent):
-        super().__init__(parent)
-        frame = self.scrollable_frame
-        title = tk.Label(frame, text="247 தமிழ் எழுத்துகள்", font=("Helvetica", 18, "bold"))
-        title.grid(row=0, column=0, columnspan=13, pady=10)
+        for r, row in enumerate(uyirmei_eluthugal):
+            for c, letter in enumerate(row):
+                label = tk.Label(scrollable_frame, text=letter, font=("Arial", 14), relief="raised", width=4, height=2)
+                label.grid(row=r, column=c, padx=2, pady=2)
 
-        # Header row: Uyir
-        for j, uyir in enumerate([""] + uyir_eluthugal):
-            tk.Label(frame, text=uyir, font=("Helvetica", 14, "bold"), borderwidth=1, relief="solid", width=5).grid(row=1, column=j)
+    def show_tamil_eluthugal(self):
+        self.clear_content()
+        title = tk.Label(self.content_frame, text="தமிழ் எழுத்துகள் முழுமையாக", font=("Arial", 16))
+        title.pack(pady=10)
 
-        # Mei and Uyirmei
-        for i, mei in enumerate(mei_eluthugal):
-            tk.Label(frame, text=mei, font=("Helvetica", 14, "bold"), borderwidth=1, relief="solid", width=5).grid(row=i+2, column=0)
-            for j, uyir in enumerate(uyir_eluthugal):
-                text = mei[0] + kombu[uyir]
-                tk.Button(frame, text=text, font=("Helvetica", 14), width=5).grid(row=i+2, column=j+1, padx=1, pady=1)
+        canvas = tk.Canvas(self.content_frame)
+        scrollbar = tk.Scrollbar(self.content_frame, orient="vertical", command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas)
 
-# Uyir Page
-class UyirPage(ScrollableFrame):
-    def __init__(self, parent):
-        super().__init__(parent)
-        frame = self.scrollable_frame
-        tk.Label(frame, text="உயிரெழுத்துகள்", font=("Helvetica", 18, "bold")).pack(pady=10)
-        for ch in uyir_eluthugal:
-            tk.Button(frame, text=ch, font=("Helvetica", 16), width=5).pack(pady=2)
+        scrollable_frame.bind(
+            "<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
 
-# Mei Page
-class MeiPage(ScrollableFrame):
-    def __init__(self, parent):
-        super().__init__(parent)
-        frame = self.scrollable_frame
-        tk.Label(frame, text="மெய்யெழுத்துகள்", font=("Helvetica", 18, "bold")).pack(pady=10)
-        for ch in mei_eluthugal:
-            tk.Button(frame, text=ch, font=("Helvetica", 16), width=5).pack(pady=2)
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
 
-# UyirMei Page
-class UyirMeiPage(ScrollableFrame):
-    def __init__(self, parent):
-        super().__init__(parent)
-        frame = self.scrollable_frame
-        tk.Label(frame, text="216 உயிர்மெய் எழுத்துகள்", font=("Helvetica", 18, "bold")).pack(pady=10)
-        for row in uyirmei_eluthugal:
-            row_frame = tk.Frame(frame)
-            row_frame.pack()
-            for ch in row:
-                tk.Button(row_frame, text=ch, font=("Helvetica", 14), width=5).pack(side="left", padx=1, pady=1)
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
 
-# Quiz Page
-class VinadiVinaPage(tk.Frame):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.index = 0
-        self.score = 0
+        header_font = ("Arial", 12, "bold")
+        tk.Label(scrollable_frame, text="", font=header_font).grid(row=0, column=0)
+        for col, uyir in enumerate(uyir_eluthugal):
+            tk.Label(scrollable_frame, text=uyir, font=header_font, relief="ridge", width=4).grid(row=0, column=col+1)
+        for row, mei in enumerate(mei_eluthugal):
+            tk.Label(scrollable_frame, text=mei, font=header_font, relief="ridge", width=4).grid(row=row+1, column=0)
+            for col, uyir in enumerate(uyir_eluthugal):
+                letter = mei[0] + combinations[uyir]
+                tk.Label(scrollable_frame, text=letter, font=("Arial", 14), relief="ridge", width=4).grid(row=row+1, column=col+1)
 
-        self.label = tk.Label(self, text="வினாடி வினா", font=("Helvetica", 18, "bold"))
-        self.label.pack(pady=20)
+    def show_vinadi_vina(self):
+        self.clear_content()
+        self.vinadi_index = 0
+        self.quiz_letters = [mei[0] + combinations[uyir] for mei in mei_eluthugal for uyir in uyir_eluthugal]
+        random.shuffle(self.quiz_letters)  # <-- Randomly shuffle quiz letters
+        self.show_quiz_letter()
 
-        self.question_label = tk.Label(self, text="", font=("Helvetica", 16))
-        self.question_label.pack(pady=10)
+    def show_quiz_letter(self):
+        self.clear_content()
 
-        self.answer_entry = tk.Entry(self, font=("Helvetica", 16))
-        self.answer_entry.pack(pady=10)
+        if self.vinadi_index >= len(self.quiz_letters):
+            label = tk.Label(self.content_frame, text="முடிந்துவிட்டது!", font=("Arial", 24))
+            label.pack(pady=20)
+            return
 
-        self.feedback = tk.Label(self, text="", font=("Helvetica", 14))
-        self.feedback.pack(pady=5)
+        letter = self.quiz_letters[self.vinadi_index]
+        label = tk.Label(self.content_frame, text=letter, font=("Arial", 100))
+        label.pack(pady=40)
 
-        self.next_btn = tk.Button(self, text="பதிலளி", command=self.check_answer)
-        self.next_btn.pack(pady=10)
+        next_btn = tk.Button(self.content_frame, text="அடுத்து", font=("Arial", 14), command=self.next_quiz_letter)
+        next_btn.pack()
 
-        self.update_question()
+    def next_quiz_letter(self):
+        self.vinadi_index += 1
+        self.show_quiz_letter()
 
-    def update_question(self):
-        if self.index < len(quiz_questions):
-            self.question_label.config(text=f"எழுத்தை காண்பி: {quiz_questions[self.index]}")
-            self.answer_entry.delete(0, tk.END)
-            self.feedback.config(text="")
-        else:
-            self.label.config(text="வினாடி வினா முடிவடைந்தது!")
-            self.question_label.config(text=f"மொத்த மதிப்பெண்: {self.score}/{len(quiz_questions)}")
-            self.answer_entry.pack_forget()
-            self.next_btn.pack_forget()
-
-    def check_answer(self):
-        ans = self.answer_entry.get().strip()
-        if ans == quiz_questions[self.index]:
-            self.score += 1
-            self.feedback.config(text="சரியான பதில்!", fg="green")
-        else:
-            self.feedback.config(text=f"தவறு! சரியானது: {quiz_questions[self.index]}", fg="red")
-        self.index += 1
-        self.after(1000, self.update_question)
-
-# Run the App
 if __name__ == "__main__":
     app = TamilApp()
     app.mainloop()
